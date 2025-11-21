@@ -8,6 +8,7 @@ const authRoutes = require("./routes/authRoutes");
 const questionRoutes = require("./routes/questionRoutes");
 const surveyRoutes = require("./routes/surveyRoutes");
 const respondentRoutes = require("./routes/respondentRoutes");
+const tokenRoutes = require("./routes/tokenRoutes");
 
 connectDB();
 
@@ -35,6 +36,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/questions", questionRoutes);
 app.use("/api/surveys", surveyRoutes);
 app.use("/api/respondents", respondentRoutes);
+app.use("/api/tokens", tokenRoutes);
 
 app.use(notFound);
 app.use(errorHandler);

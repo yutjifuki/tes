@@ -1,20 +1,56 @@
 import React, { useState } from "react";
 import { MdOutlineCancel } from "react-icons/md";
 import { Link } from "react-router-dom";
+import axios from "axios";
 
 const RespondentModal = ({ onSubmit, onCancel }) => {
   const [name, setName] = useState("");
   const [gender, setGender] = useState("");
   const [age, setAge] = useState("");
   const [visitFrequency, setVisitFrequency] = useState("Pertama kali");
+  const [tokenCode, setTokenCode] = useState("");
   const [error, setError] = useState("");
+  const [tokenValidating, setTokenValidating] = useState(false);
 
-  const handleSubmit = (e) => {
+  const getApiEndpoint = (specificPath) => {
+    if (process.env.NODE_ENV === "production") {
+      if (!process.env.REACT_APP_API_URL) {
+        return `/api${specificPath}`;
+      }
+      return `${process.env.REACT_APP_API_URL}${specificPath}`;
+    } else {
+      return `/api${specificPath}`;
+    }
+  };
+
+  const validateToken = async (code) => {
+    if (!code || code.length !== 5) {
+      return false;
+    }
+
+    setTokenValidating(true);
+    try {
+      const response = await axios.post(getApiEndpoint("/tokens/validate"), {
+        tokenCode: code,
+      });
+      setTokenValidating(false);
+      return response.data.valid;
+    } catch (err) {
+      setTokenValidating(false);
+      setError(err.response?.data?.message || "Token tidak valid");
+      return false;
+    }
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setError("");
+
     if (!name.trim() || !gender || !age || !visitFrequency) {
       setError("Semua field data responden harus diisi.");
       return;
     }
+
     const numericAge = parseInt(age);
     if (isNaN(numericAge) || numericAge <= 0) {
       setError("Usia harus berupa angka positif.");
@@ -24,8 +60,22 @@ const RespondentModal = ({ onSubmit, onCancel }) => {
       setError("Minimal usia adalah 18 tahun.");
       return;
     }
-    setError("");
-    onSubmit({ name, gender, age: numericAge, visitFrequency });
+
+    // Validate token if provided
+    if (tokenCode.trim()) {
+      const isTokenValid = await validateToken(tokenCode.trim());
+      if (!isTokenValid) {
+        return; // Error already set in validateToken
+      }
+    }
+
+    onSubmit({
+      name,
+      gender,
+      age: numericAge,
+      visitFrequency,
+      tokenCode: tokenCode.trim() || null,
+    });
   };
 
   return (
@@ -44,6 +94,46 @@ const RespondentModal = ({ onSubmit, onCancel }) => {
         </div>
         {error && <p className="notification error">{error}</p>}
         <form onSubmit={handleSubmit}>
+          <div className="form-group">
+            <label htmlFor="tokenCode">
+              Token Survey (Opsional)
+              <span
+                style={{
+                  fontSize: "0.85rem",
+                  color: "#7f8c8d",
+                  marginLeft: "5px",
+                }}
+              >
+                - Jika Anda memiliki token
+              </span>
+            </label>
+            <input
+              type="text"
+              id="tokenCode"
+              value={tokenCode}
+              onChange={(e) => {
+                const value = e.target.value;
+                if (value.length <= 5) {
+                  setTokenCode(value);
+                  setError(""); // Clear error when typing
+                }
+              }}
+              placeholder="Contoh: A1B2C"
+              maxLength="5"
+              style={{
+                fontFamily: "monospace",
+                fontSize: "1.1rem",
+                letterSpacing: "2px",
+                // textTransform: "uppercase",
+              }}
+            />
+            {tokenValidating && (
+              <small style={{ color: "#3498db", marginTop: "5px" }}>
+                Memvalidasi token...
+              </small>
+            )}
+          </div>
+
           <div className="form-group">
             <label htmlFor="name">Nama</label>
             <input
@@ -81,7 +171,7 @@ const RespondentModal = ({ onSubmit, onCancel }) => {
               value={age}
               onChange={(e) => {
                 const value = e.target.value;
-                if (/^\d{0,3}$/.test(value)) {
+                if (/^\d{0,2}$/.test(value)) {
                   setAge(value);
                 }
               }}
@@ -103,8 +193,12 @@ const RespondentModal = ({ onSubmit, onCancel }) => {
               <option value="Sering">Sering</option>
             </select>
           </div>
-          <button type="submit" className="continue-btn">
-            Lanjutkan
+          <button
+            type="submit"
+            className="continue-btn"
+            disabled={tokenValidating}
+          >
+            {tokenValidating ? "Memvalidasi..." : "Lanjutkan"}
           </button>
         </form>
       </div>

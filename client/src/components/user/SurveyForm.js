@@ -55,13 +55,23 @@ const SurveyForm = ({ respondentData, onSurveySubmitSuccess }) => {
     }
 
     const surveyPayload = {
-      respondentData,
+      respondentData: {
+        name: respondentData.name,
+        gender: respondentData.gender,
+        age: respondentData.age,
+        visitFrequency: respondentData.visitFrequency,
+      },
       answers: questions.map((q) => ({
         surveyId: q._id,
         questionText: q.questionText,
         answer: answers[q._id],
       })),
     };
+
+    // Add token if provided
+    if (respondentData.tokenCode) {
+      surveyPayload.tokenCode = respondentData.tokenCode;
+    }
 
     try {
       setIsLoading(true);
@@ -87,6 +97,21 @@ const SurveyForm = ({ respondentData, onSurveySubmitSuccess }) => {
   return (
     <form onSubmit={handleSubmit}>
       <h2>Daftar Survei</h2>
+      {respondentData.tokenCode && (
+        <div
+          style={{
+            backgroundColor: "#e6f9f0",
+            padding: "10px 15px",
+            borderRadius: "4px",
+            marginBottom: "15px",
+            border: "1px solid #2ecc71",
+          }}
+        >
+          <p style={{ margin: 0, color: "#27ae60", fontWeight: "bold" }}>
+            ✓ Menggunakan Token: {respondentData.tokenCode}
+          </p>
+        </div>
+      )}
       {error && <p className="notification error">{error}</p>}
       {submitMessage && <p className="notification success">{submitMessage}</p>}
 
@@ -127,7 +152,6 @@ const SurveyForm = ({ respondentData, onSurveySubmitSuccess }) => {
                         htmlFor={radioId}
                         style={{ cursor: "pointer", flexGrow: 1 }}
                       >
-                        {" "}
                         {option}
                       </label>
                     </div>

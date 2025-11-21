@@ -6,21 +6,76 @@ const getAllRespondents = async (req, res) => {
   const limit = parseInt(req.query.limit) || 25;
   const skip = (page - 1) * limit;
 
+  // Get filter parameters from query
+  const { gender, ageMin, ageMax, visitFrequency, dateFrom, dateTo } =
+    req.query;
+
   try {
-    const respondents = await Respondent.find()
+    // Build filter query
+    const filterQuery = {};
+
+    // Gender filter
+    if (gender) {
+      filterQuery.gender = gender;
+    }
+
+    // Age range filter
+    if (ageMin || ageMax) {
+      filterQuery.age = {};
+      if (ageMin) {
+        filterQuery.age.$gte = parseInt(ageMin);
+      }
+      if (ageMax) {
+        filterQuery.age.$lte = parseInt(ageMax);
+      }
+    }
+
+    // Visit frequency filter
+    if (visitFrequency) {
+      filterQuery.visitFrequency = visitFrequency;
+    }
+
+    // Date range filter
+    if (dateFrom || dateTo) {
+      filterQuery.createdAt = {};
+      if (dateFrom) {
+        // Set to start of day
+        const fromDate = new Date(dateFrom);
+        fromDate.setHours(0, 0, 0, 0);
+        filterQuery.createdAt.$gte = fromDate;
+      }
+      if (dateTo) {
+        // Set to end of day
+        const toDate = new Date(dateTo);
+        toDate.setHours(23, 59, 59, 999);
+        filterQuery.createdAt.$lte = toDate;
+      }
+    }
+
+    // Fetch respondents with filters
+    const respondents = await Respondent.find(filterQuery)
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit);
 
-    const totalRespondents = await Respondent.countDocuments();
+    const totalRespondents = await Respondent.countDocuments(filterQuery);
 
     res.json({
       respondents,
       currentPage: page,
       totalPages: Math.ceil(totalRespondents / limit),
       totalRespondents,
+      appliedFilters: {
+        gender,
+        ageMin,
+        ageMax,
+        visitFrequency,
+        dateFrom,
+        dateTo,
+      },
     });
   } catch (error) {
+    console.error("Error fetching respondents:", error);
     res.status(500).json({ message: "Server Error" });
   }
 };

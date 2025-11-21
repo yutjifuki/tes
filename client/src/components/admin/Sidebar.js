@@ -2,7 +2,7 @@ import React from "react";
 import { NavLink } from "react-router-dom";
 import { BiSolidDashboard } from "react-icons/bi";
 import { BsFillPeopleFill } from "react-icons/bs";
-import { FaChartPie } from "react-icons/fa";
+import { FaChartPie, FaTicketAlt } from "react-icons/fa";
 import { RiSurveyFill } from "react-icons/ri";
 import bgImage from "../../assets/bg.png";
 
@@ -48,6 +48,19 @@ const Sidebar = () => {
           >
             <RiSurveyFill style={sidebarStyles.navIcon} />
             Kuesioner
+          </NavLink>
+        </li>
+        <li style={sidebarStyles.navItem}>
+          <NavLink
+            to="/zonadptk/token"
+            style={({ isActive }) =>
+              isActive
+                ? { ...sidebarStyles.navLink, ...sidebarStyles.activeLink }
+                : sidebarStyles.navLink
+            }
+          >
+            <FaTicketAlt style={sidebarStyles.navIcon} />
+            Token Survey
           </NavLink>
         </li>
         <li style={sidebarStyles.navItem}>

@@ -1,6 +1,7 @@
 const Survey = require("../models/Survey");
 const Respondent = require("../models/Respondent");
 const Submission = require("../models/Submission");
+const Token = require("../models/Token");
 const { validationResult } = require("express-validator");
 const { v4: uuidv4 } = require("uuid");
 
@@ -11,18 +12,44 @@ const submitSurvey = async (req, res) => {
   }
 
   let cookieId = req.cookies.surveySubmitted;
+  const { respondentData, answers, tokenCode } = req.body;
 
-  if (cookieId) {
-    const existingCookieSubmission = await Submission.findOne({ cookieId });
-    if (existingCookieSubmission) {
-      return res.status(400).json({
-        message:
-          "Anda sudah mengisi survei hari ini. Terima kasih atas partisipasi Anda!",
-      });
+  // Check if token is provided and validate it
+  if (tokenCode) {
+    try {
+      const token = await Token.findOne({ tokenCode });
+
+      if (!token) {
+        return res.status(404).json({ message: "Token tidak valid" });
+      }
+
+      const now = new Date();
+      if (token.expiresAt < now) {
+        token.isActive = false;
+        await token.save();
+        return res.status(400).json({ message: "Token sudah kadaluarsa" });
+      }
+
+      if (!token.isActive || token.usedBy) {
+        return res.status(400).json({ message: "Token sudah digunakan" });
+      }
+    } catch (error) {
+      console.error("Error validating token:", error);
+      return res.status(500).json({ message: "Error memvalidasi token" });
+    }
+  } else {
+    // If no token, check cookie-based submission
+    if (cookieId) {
+      const existingCookieSubmission = await Submission.findOne({ cookieId });
+      if (existingCookieSubmission) {
+        return res.status(400).json({
+          message:
+            "Anda sudah mengisi survei hari ini. Terima kasih atas partisipasi Anda!",
+        });
+      }
     }
   }
 
-  const { respondentData, answers } = req.body;
   const activeQuestions = await Survey.find({ isActive: true });
   if (answers.length !== activeQuestions.length) {
     return res
@@ -50,21 +77,24 @@ const submitSurvey = async (req, res) => {
       existingRespondent = await existingRespondent.save();
     }
 
-    const startOfToday = new Date();
-    startOfToday.setHours(0, 0, 0, 0);
-    const endOfToday = new Date();
-    endOfToday.setHours(23, 59, 59, 999);
+    // Check daily submission only if not using token
+    if (!tokenCode) {
+      const startOfToday = new Date();
+      startOfToday.setHours(0, 0, 0, 0);
+      const endOfToday = new Date();
+      endOfToday.setHours(23, 59, 59, 999);
 
-    const existingSubmission = await Submission.findOne({
-      respondentId: existingRespondent._id,
-      submittedAt: { $gte: startOfToday, $lte: endOfToday },
-    });
-
-    if (existingSubmission) {
-      return res.status(400).json({
-        message:
-          "Anda sudah mengisi survei hari ini. Terima kasih atas partisipasi Anda!",
+      const existingSubmission = await Submission.findOne({
+        respondentId: existingRespondent._id,
+        submittedAt: { $gte: startOfToday, $lte: endOfToday },
       });
+
+      if (existingSubmission) {
+        return res.status(400).json({
+          message:
+            "Anda sudah mengisi survei hari ini. Terima kasih atas partisipasi Anda!",
+        });
+      }
     }
 
     if (!cookieId) {
@@ -82,13 +112,23 @@ const submitSurvey = async (req, res) => {
     });
     await newSubmission.save();
 
-    res.cookie("surveySubmitted", cookieId, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
-      maxAge: 24 * 60 * 60 * 1000,
-      path: "/",
-    });
+    // Mark token as used if token was provided
+    if (tokenCode) {
+      const token = await Token.findOne({ tokenCode });
+      token.usedBy = existingRespondent._id;
+      token.usedAt = new Date();
+      token.isActive = false;
+      await token.save();
+    } else {
+      // Set cookie only if not using token
+      res.cookie("surveySubmitted", cookieId, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
+        maxAge: 24 * 60 * 60 * 1000,
+        path: "/",
+      });
+    }
 
     res.status(201).json({
       message: "Survei berhasil dikirim. Terima kasih atas partisipasi Anda!",

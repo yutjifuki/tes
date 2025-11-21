@@ -30,10 +30,25 @@ const getAdminDashboardStats = async () => {
   }
 };
 
-const getRespondents = async (page = 1, limit = 25) => {
+const getRespondents = async (page = 1, limit = 25, filters = {}) => {
   try {
+    // Build query string with filters
+    const params = new URLSearchParams({
+      page: page.toString(),
+      limit: limit.toString(),
+    });
+
+    // Add filters to query params if they exist
+    if (filters.gender) params.append("gender", filters.gender);
+    if (filters.ageMin) params.append("ageMin", filters.ageMin);
+    if (filters.ageMax) params.append("ageMax", filters.ageMax);
+    if (filters.visitFrequency)
+      params.append("visitFrequency", filters.visitFrequency);
+    if (filters.dateFrom) params.append("dateFrom", filters.dateFrom);
+    if (filters.dateTo) params.append("dateTo", filters.dateTo);
+
     const response = await axios.get(
-      getApiEndpoint(`/respondents?page=${page}&limit=${limit}`),
+      getApiEndpoint(`/respondents?${params.toString()}`),
       { withCredentials: true }
     );
     return response.data;
@@ -156,6 +171,95 @@ const resetAllRespondents = async () => {
   }
 };
 
+// Token management methods
+const generateTokens = async (quantity) => {
+  try {
+    const response = await axios.post(
+      getApiEndpoint("/tokens/generate"),
+      { quantity },
+      { withCredentials: true }
+    );
+    return response.data;
+  } catch (error) {
+    console.error(
+      "Error generating tokens:",
+      error.response ? error.response.data : error.message
+    );
+    throw error.response
+      ? error.response.data
+      : new Error("Gagal membuat token");
+  }
+};
+
+const getTokens = async (page = 1, limit = 25) => {
+  try {
+    const response = await axios.get(
+      getApiEndpoint(`/tokens?page=${page}&limit=${limit}`),
+      { withCredentials: true }
+    );
+    return response.data;
+  } catch (error) {
+    console.error(
+      "Error fetching tokens:",
+      error.response ? error.response.data : error.message
+    );
+    throw error.response
+      ? error.response.data
+      : new Error("Gagal memuat data token");
+  }
+};
+
+const getTokenById = async (id) => {
+  try {
+    const response = await axios.get(getApiEndpoint(`/tokens/${id}`), {
+      withCredentials: true,
+    });
+    return response.data;
+  } catch (error) {
+    console.error(
+      "Error fetching token by id:",
+      error.response ? error.response.data : error.message
+    );
+    throw error.response
+      ? error.response.data
+      : new Error("Gagal memuat detail token");
+  }
+};
+
+const deleteToken = async (id) => {
+  try {
+    const response = await axios.delete(getApiEndpoint(`/tokens/${id}`), {
+      withCredentials: true,
+    });
+    return response.data;
+  } catch (error) {
+    console.error(
+      "Error deleting token:",
+      error.response ? error.response.data : error.message
+    );
+    throw error.response
+      ? error.response.data
+      : new Error("Gagal menghapus token");
+  }
+};
+
+const resetAllTokens = async () => {
+  try {
+    const response = await axios.delete(getApiEndpoint("/tokens/reset-all"), {
+      withCredentials: true,
+    });
+    return response.data;
+  } catch (error) {
+    console.error(
+      "Error resetting all tokens:",
+      error.response ? error.response.data : error.message
+    );
+    throw error.response
+      ? error.response.data
+      : new Error("Gagal mereset semua token");
+  }
+};
+
 const adminService = {
   getAdminDashboardStats,
   getRespondents,
@@ -165,6 +269,11 @@ const adminService = {
   deleteQuestion,
   getResultsByQuestion,
   resetAllRespondents,
+  generateTokens,
+  getTokens,
+  getTokenById,
+  deleteToken,
+  resetAllTokens,
 };
 
 export default adminService;

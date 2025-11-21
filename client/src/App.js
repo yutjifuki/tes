@@ -18,6 +18,7 @@ import AdminLayout from "./components/admin/AdminLayout";
 import DashboardPage from "./pages/admin/DashboardPage";
 import RespondentsPage from "./pages/admin/RespondentsPage";
 import QuestionsPage from "./pages/admin/QuestionsPage";
+import TokensPage from "./pages/admin/TokensPage";
 import ResultsPage from "./pages/admin/ResultsPage";
 import authService from "./services/authService";
 import "./App.css";
@@ -154,8 +155,9 @@ function App() {
           <Route path="dashboard" element={<DashboardPage />} />
           <Route path="responden" element={<RespondentsPage />} />
           <Route path="kuesioner" element={<QuestionsPage />} />
+          <Route path="token" element={<TokensPage />} />
           <Route path="hasil-kuesioner" element={<ResultsPage />} />
-          <Route index element={<Navigate to="dashboard" replace />} />{" "}
+          <Route index element={<Navigate to="dashboard" replace />} />
         </Route>
 
         <Route path="*" element={<Navigate to="/" />} />
