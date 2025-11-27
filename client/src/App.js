@@ -21,6 +21,7 @@ import QuestionsPage from "./pages/admin/QuestionsPage";
 import TokensPage from "./pages/admin/TokensPage";
 import ResultsPage from "./pages/admin/ResultsPage";
 import authService from "./services/authService";
+import AmbilTokenPage from "./pages/user/AmbilTokenPage";
 import "./App.css";
 
 const ProtectedAdminRoute = ({ children }) => {
@@ -139,6 +140,15 @@ function App() {
                 hasSubmittedInitial={hasSubmittedSurvey}
                 onSurveySubmit={() => setHasSubmittedSurvey(true)}
               />
+            </UserLayout>
+          }
+        />
+
+        <Route
+          path="/ambiltoken"
+          element={
+            <UserLayout>
+              <AmbilTokenPage />
             </UserLayout>
           }
         />

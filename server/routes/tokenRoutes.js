@@ -7,10 +7,13 @@ const {
   validateToken,
   deleteToken,
   resetAllTokens,
+  getActiveTokensPublic,
 } = require("../controllers/tokenController");
 const { protectAdmin } = require("../middleware/authMiddleware");
 const { check } = require("express-validator");
 
+router.post("/validate", validateToken);
+router.get("/active-public", getActiveTokensPublic);
 // Admin routes - Protected with authentication
 router.post(
   "/generate",

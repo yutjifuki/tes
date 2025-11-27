@@ -91,11 +91,25 @@ const getHomepageStatistics = async () => {
   }
 };
 
+const getActiveTokensPublic = async () => {
+  try {
+    const response = await axios.get(getApiEndpoint("/tokens/active-public"));
+    return response.data;
+  } catch (error) {
+    console.error(
+      "Error fetching active tokens:",
+      error.response ? error.response.data : error.message
+    );
+    return { tokens: [], totalActive: 0 };
+  }
+};
+
 const surveyService = {
   getActiveQuestions,
   submitSurvey,
   checkSubmissionStatus,
   getHomepageStatistics,
+  getActiveTokensPublic,
 };
 
 export default surveyService;

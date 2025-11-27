@@ -95,40 +95,55 @@ const RespondentModal = ({ onSubmit, onCancel }) => {
         {error && <p className="notification error">{error}</p>}
         <form onSubmit={handleSubmit}>
           <div className="form-group">
-            <label htmlFor="tokenCode">
-              Token Survey (Opsional)
-              <span
-                style={{
-                  fontSize: "0.85rem",
-                  color: "#7f8c8d",
-                  marginLeft: "5px",
+            <label htmlFor="tokenCode">Token Survey</label>
+            <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+              <input
+                type="text"
+                id="tokenCode"
+                value={tokenCode}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  if (value.length <= 5) {
+                    setTokenCode(value);
+                    setError("");
+                  }
                 }}
-              >
-                - Jika Anda memiliki token
-              </span>
-            </label>
-            <input
-              type="text"
-              id="tokenCode"
-              value={tokenCode}
-              onChange={(e) => {
-                const value = e.target.value;
-                if (value.length <= 5) {
-                  setTokenCode(value);
-                  setError(""); // Clear error when typing
+                maxLength="5"
+                style={{
+                  fontFamily: "monospace",
+                  fontSize: "1.1rem",
+                  letterSpacing: "2px",
+                  flex: 1,
+                }}
+              />
+              <Link
+                to="/ambiltoken"
+                target="_blank"
+                style={{
+                  padding: "0.7rem 1rem",
+                  backgroundColor: "#3498db",
+                  color: "#FBFFFE",
+                  textDecoration: "none",
+                  borderRadius: "4px",
+                  fontSize: "0.85rem",
+                  fontWeight: "500",
+                  whiteSpace: "nowrap",
+                  transition: "background-color 0.2s",
+                }}
+                onMouseEnter={(e) =>
+                  (e.target.style.backgroundColor = "#2980b9")
                 }
-              }}
-              placeholder="Contoh: A1B2C"
-              maxLength="5"
-              style={{
-                fontFamily: "monospace",
-                fontSize: "1.1rem",
-                letterSpacing: "2px",
-                // textTransform: "uppercase",
-              }}
-            />
+                onMouseLeave={(e) =>
+                  (e.target.style.backgroundColor = "#3498db")
+                }
+              >
+                Ambil Token
+              </Link>
+            </div>
             {tokenValidating && (
-              <small style={{ color: "#3498db", marginTop: "5px" }}>
+              <small
+                style={{ color: "#3498db", marginTop: "5px", display: "block" }}
+              >
                 Memvalidasi token...
               </small>
             )}

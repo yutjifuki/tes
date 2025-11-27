@@ -188,6 +188,29 @@ const resetAllTokens = async (req, res) => {
   }
 };
 
+const getActiveTokensPublic = async (req, res) => {
+  try {
+    const now = new Date();
+
+    // Find all active tokens that are not used and not expired
+    const activeTokens = await Token.find({
+      isActive: true,
+      usedBy: null,
+      expiresAt: { $gt: now },
+    })
+      .select("tokenCode expiresAt createdAt")
+      .sort({ createdAt: -1 });
+
+    res.json({
+      tokens: activeTokens,
+      totalActive: activeTokens.length,
+    });
+  } catch (error) {
+    console.error("Error fetching active tokens:", error);
+    res.status(500).json({ message: "Server Error" });
+  }
+};
+
 module.exports = {
   generateTokens,
   getAllTokens,
@@ -195,4 +218,5 @@ module.exports = {
   validateToken,
   deleteToken,
   resetAllTokens,
+  getActiveTokensPublic,
 };
