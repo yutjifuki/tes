@@ -211,6 +211,7 @@ const styles = {
   emptyState: {
     textAlign: "center",
     padding: "4rem 2rem",
+    marginBottom: "2rem",
     backgroundColor: "#FBFFFE",
     borderRadius: "8px",
     maxWidth: "500px",

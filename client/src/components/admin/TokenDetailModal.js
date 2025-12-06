@@ -33,7 +33,10 @@ const TokenDetailModal = ({ token, onClose }) => {
 
   return (
     <div className="modal-overlay">
-      <div className="modal-content" style={{ maxWidth: "600px" }}>
+      <div
+        className="modal-content"
+        style={{ maxWidth: "600px", maxHeight: "80vh", overflowY: "auto" }}
+      >
         <div className="modal-header">
           <h2>Detail Token</h2>
           <button

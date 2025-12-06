@@ -7,8 +7,6 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  LineChart,
-  Line,
 } from "recharts";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
@@ -203,6 +201,32 @@ const ResultsPage = () => {
   const ikmValues = results.map(calculateIKMPerQuestion);
   const monthlyIKM = calculateMonthlyIKM();
 
+  const avgIKM =
+    ikmValues.length > 0
+      ? ikmValues.reduce((a, b) => a + b, 0) / ikmValues.length
+      : 0;
+  const category = getCategoryByIKM(avgIKM);
+
+  const totalSangatPuas = results.reduce(
+    (sum, q) => sum + (q.answers["Sangat Puas"] || 0),
+    0
+  );
+  const totalPuas = results.reduce(
+    (sum, q) => sum + (q.answers["Puas"] || 0),
+    0
+  );
+  const totalKurangPuas = results.reduce(
+    (sum, q) => sum + (q.answers["Kurang Puas"] || 0),
+    0
+  );
+  const totalTidakPuas = results.reduce(
+    (sum, q) => sum + (q.answers["Tidak Puas"] || 0),
+    0
+  );
+
+  const totalResponses =
+    totalSangatPuas + totalPuas + totalKurangPuas + totalTidakPuas;
+
   const handleApplyFilter = () => {
     setActiveFilters(filters);
     setShowFilterPanel(false);
@@ -319,7 +343,7 @@ const ResultsPage = () => {
 
   return (
     <div style={{ padding: "20px" }}>
-      <h1>📊 Hasil Kuesioner Kepuasan Masyarakat</h1>
+      <h1>Hasil Kuesioner Kepuasan Masyarakat</h1>
 
       {/* Header Actions */}
       <div
@@ -548,35 +572,103 @@ const ResultsPage = () => {
             )}
           </p>
         </div>
-      </div>
-
-      {/* Monthly IKM Chart */}
-      {monthlyIKM.length > 0 && (
         <div
           style={{
-            backgroundColor: "#fbfffe",
-            padding: "20px",
-            borderRadius: "8px",
-            marginBottom: "20px",
+            backgroundColor: "#ecf0f1",
+            padding: "15px",
+            borderRadius: "4px",
           }}
         >
-          <h3>📈 Tren IKM Bulanan</h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={monthlyIKM}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="month" />
-              <YAxis domain={[0, 100]} />
-              <Tooltip />
-              <Line
-                type="monotone"
-                dataKey="ikm"
-                stroke="#3498db"
-                strokeWidth={2}
-              />
-            </LineChart>
-          </ResponsiveContainer>
+          <p style={{ margin: 0, fontSize: "12px", color: "#555" }}>Kategori</p>
+          <p
+            style={{
+              margin: "5px 0 0 0",
+              fontSize: "24px",
+              fontWeight: "bold",
+            }}
+          >
+            {category.category}
+          </p>
         </div>
-      )}
+        <div
+          style={{
+            backgroundColor: "#ecf0f1",
+            padding: "15px",
+            borderRadius: "4px",
+          }}
+        >
+          <p style={{ margin: 0, fontSize: "12px", color: "#555" }}>
+            Sangat Puas
+          </p>
+          <p
+            style={{
+              margin: "5px 0 0 0",
+              fontSize: "24px",
+              fontWeight: "bold",
+            }}
+          >
+            {((totalSangatPuas / totalResponses) * 100).toFixed(1)}%
+          </p>
+        </div>
+        <div
+          style={{
+            backgroundColor: "#ecf0f1",
+            padding: "15px",
+            borderRadius: "4px",
+          }}
+        >
+          <p style={{ margin: 0, fontSize: "12px", color: "#555" }}>Puas</p>
+          <p
+            style={{
+              margin: "5px 0 0 0",
+              fontSize: "24px",
+              fontWeight: "bold",
+            }}
+          >
+            {((totalPuas / totalResponses) * 100).toFixed(1)}%
+          </p>
+        </div>
+        <div
+          style={{
+            backgroundColor: "#ecf0f1",
+            padding: "15px",
+            borderRadius: "4px",
+          }}
+        >
+          <p style={{ margin: 0, fontSize: "12px", color: "#555" }}>
+            Kurang Puas
+          </p>
+          <p
+            style={{
+              margin: "5px 0 0 0",
+              fontSize: "24px",
+              fontWeight: "bold",
+            }}
+          >
+            {((totalKurangPuas / totalResponses) * 100).toFixed(1)}%
+          </p>
+        </div>
+        <div
+          style={{
+            backgroundColor: "#ecf0f1",
+            padding: "15px",
+            borderRadius: "4px",
+          }}
+        >
+          <p style={{ margin: 0, fontSize: "12px", color: "#555" }}>
+            Tidak Puas
+          </p>
+          <p
+            style={{
+              margin: "5px 0 0 0",
+              fontSize: "24px",
+              fontWeight: "bold",
+            }}
+          >
+            {((totalTidakPuas / totalResponses) * 100).toFixed(1)}%
+          </p>
+        </div>
+      </div>
 
       {/* Results by Question */}
       {filteredResults.length > 0 && (
@@ -654,6 +746,8 @@ const ResultsPage = () => {
                     gridTemplateColumns: "1fr 1fr",
                     gap: "20px",
                     marginBottom: "15px",
+                    border: "none",
+                    outline: "none",
                   }}
                 >
                   {/* Bar Chart */}
@@ -744,7 +838,7 @@ const ResultsPage = () => {
                           key={item.label}
                           style={{
                             backgroundColor: "#f9f9f9",
-                            border: `2px solid ${item.color}`,
+                            border: `1px solid ${item.color}`,
                             borderRadius: "4px",
                             padding: "10px",
                             display: "flex",
@@ -752,11 +846,7 @@ const ResultsPage = () => {
                             alignItems: "center",
                           }}
                         >
-                          <span
-                            style={{ fontWeight: "bold", color: "#2c3e50" }}
-                          >
-                            {item.label}
-                          </span>
+                          <span style={{ color: "#2c3e50" }}>{item.label}</span>
                           <span
                             style={{ color: item.color, fontWeight: "bold" }}
                           >
@@ -800,7 +890,7 @@ const ResultsPage = () => {
             marginTop: "30px",
           }}
         >
-          <h3>📋 Tabel Ringkasan IKM</h3>
+          <h3>Tabel Ringkasan IKM</h3>
           <div style={{ overflowX: "auto" }}>
             <table style={{ width: "100%", borderCollapse: "collapse" }}>
               <thead>
@@ -928,7 +1018,7 @@ const ResultsPage = () => {
                         style={{
                           padding: "12px",
                           textAlign: "center",
-                          backgroundColor: category.color + "20",
+                          // backgroundColor: category.color + "20",
                           color: category.color,
                           fontWeight: "bold",
                           borderRadius: "4px",
@@ -976,7 +1066,23 @@ const ResultsPage = () => {
                       ikmValues.reduce((a, b) => a + b, 0) / ikmValues.length
                     ).toFixed(2)}
                   </td>
-                  <td style={{ padding: "12px", textAlign: "center" }}>-</td>
+                  <td
+                    style={{
+                      padding: "12px",
+                      textAlign: "center",
+                      color: getCategoryByIKM(
+                        ikmValues.reduce((a, b) => a + b, 0) / ikmValues.length
+                      ).color,
+                      fontWeight: "bold",
+                      borderRadius: "4px",
+                    }}
+                  >
+                    {
+                      getCategoryByIKM(
+                        ikmValues.reduce((a, b) => a + b, 0) / ikmValues.length
+                      ).category
+                    }
+                  </td>
                   <td style={{ padding: "12px", textAlign: "center" }}>
                     {filteredResults.reduce(
                       (sum, q) => sum + q.totalAnswersForThisQuestion,
