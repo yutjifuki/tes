@@ -556,9 +556,7 @@ const ResultsPage = () => {
             borderRadius: "4px",
           }}
         >
-          <p style={{ margin: 0, fontSize: "12px", color: "#555" }}>
-            IKM Rata-rata
-          </p>
+          <p style={{ margin: 0, fontSize: "12px", color: "#555" }}>IKM</p>
           <p
             style={{
               margin: "5px 0 0 0",
